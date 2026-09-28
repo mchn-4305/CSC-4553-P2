@@ -1,17 +1,18 @@
-#include <sys/types.h>
+#include <stdlib.h>
+#include "process.h"
 
-typedef struct Process {
-    int id;
-    int priority;
+void free_process(Process *process) {
+    if (process == NULL) {
+        return;
+    }
 
-    char *program;
-    char **args;
-    int argc;
+    if (process->argv != NULL) {
+        for (int i = 0; i < process->argc; i++) {
+            free(process->argv[i]);
+        }
 
-    pid_t pid;
+        free(process->argv);
+    }
 
-    int finished;
-    int stopped;
-
-    struct Process *next;
-} Process;
+    free(process);
+}
