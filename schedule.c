@@ -151,9 +151,8 @@ int main(int argc, char *argv[]) {
 
     free(line);
     fclose(file);
-    return EXIT_SUCCESS;
 
-    //After file is processed into linked-list
+     //After file is processed into linked-list
     //TODO: Get process head
     setup_sigs();
     create_all_processes(head);
@@ -180,7 +179,7 @@ int main(int argc, char *argv[]) {
                 p = priority_group;
             }
         }
-        group = end;
+        priority_group = end;
     }
 
     
