@@ -43,7 +43,7 @@ Process *parse_process_line(char *line) {
     if (token == NULL) {
         fprintf(stderr, "Missing process ID\n");
         free(process);
-        return NULL
+        return NULL;
     }
 
     char *endptr;
@@ -51,7 +51,7 @@ Process *parse_process_line(char *line) {
     long id = strtol(token, &endptr, 10);
 
     if (*endptr != '\0' || id <= 0) {
-        fprintf(stderr, "Invalid process ID: %s\n," token);
+        fprintf(stderr, "Invalid process ID: %s\n", token);
         free(process);
         return NULL;
     }

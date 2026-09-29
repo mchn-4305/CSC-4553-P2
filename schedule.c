@@ -9,6 +9,9 @@
 #include <sys/time.h>
 #include <errno.h>
 
+#include "process.h"
+#include "parser.h"
+
 //Statuses of running one quantum
 #define SLICE_RUNNING 0
 #define SLICE_STOPPED 1
@@ -154,13 +157,13 @@ int main(int argc, char *argv[]) {
 
     char *endptr;
     long quantum = strtol(argv[1], &endptr, 10);
-    if (end == argv[1] || *endptr != '\0' || quantum <= 0) {
+    if (endptr == argv[1] || *endptr != '\0' || quantum <= 0) {
         fprintf(stderr, "Invalid quantum: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
     char *filename = argv[2];
-    FILE *file = fopen(filename, r);
+    FILE *file = fopen(filename, "r");
 
     if (file == NULL) {
         perror("fopen");
@@ -169,6 +172,9 @@ int main(int argc, char *argv[]) {
 
     char *line = NULL;
     size_t capacity = 0;
+    
+    Process *head = NULL;
+
     while (getline(&line, &capacity, file) != -1) {
         Process *process = parse_process_line(line);
 
@@ -183,13 +189,27 @@ int main(int argc, char *argv[]) {
         );
     }
 
+    // Testing loop, delete after
+    for (Process *p = head; p != NULL; p = =->next) {
+        printf("id=%d priority=%d program =%s\n",
+            p->id,
+            p->priority,
+            p->program
+        );
+        for (int i = 0; i < p->argc; i++) {
+            printf(
+                "    argv[%d] = %s\n",
+                i,
+                p->argv[i]
+            );
+        }
+    }
+
     free(line);
     fclose(file);
-
-     //After file is processed into linked-list
-    //TODO: Get process head
-    setup_sigs();
-    create_all_processes(head);
+    
+    // setup_sigs();
+    // create_all_processes(head);
 
     Process *priority_group = head;
     while (priority_group != NULL) {

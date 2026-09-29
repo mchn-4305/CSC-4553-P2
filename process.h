@@ -13,6 +13,7 @@ typedef struct Process {
     int finished;
     int stopped;
     struct Process *next;
+    
 } Process;
 
 void free_process(Process *process);
