@@ -1,5 +1,8 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdlib.h>
 #include <stdio.h>
+// #include <errno.h>
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
@@ -8,9 +11,9 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    char *end;
-    long quantum = strtol(argv[1], &end, 10);
-    if (end == argv[1] || *end != '\0') {
+    char *endptr;
+    long quantum = strtol(argv[1], &endptr, 10);
+    if (end == argv[1] || *endptr != '\0' || quantum <= 0) {
         fprintf(stderr, "Invalid quantum: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
@@ -19,6 +22,7 @@ int main(int argc, char *argv[]) {
     FILE *file = fopen(filename, r);
 
     if (file == NULL) {
+        perror("fopen");
         return EXIT_FAILURE;
     }
 
