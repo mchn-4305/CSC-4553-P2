@@ -121,11 +121,6 @@ static void create_all_processes(Process *head) {
 
         p->pid = pid;
         p->stopped = 1;
-        printf(
-            "Created process ID %d as PID %d\n",
-            p->id,
-            p->pid
-        );
     }
 }
 
@@ -228,39 +223,11 @@ int main(int argc, char *argv[]) {
         );
     }
 
-    // Testing loop, delete after
-    for (Process *p = head; p != NULL; p = p->next) {
-        printf("id=%d priority=%d program =%s\n",
-            p->id,
-            p->priority,
-            p->program
-        );
-        for (int i = 0; i < p->argc; i++) {
-            printf(
-                "    argv[%d] = %s\n",
-                i,
-                p->argv[i]
-            );
-        }
-    }
-
     free(line);
     fclose(file);
 
     setup_sigs();
     create_all_processes(head);
-
-    // test line, delete after
-    printf("All processes successfully created.\n");
-    // test loop, delete after
-    // for (Process *p = head; p != NULL; p = p->next) {
-    //     if (p->pid > 0) {
-    //         kill(p->pid, SIGKILL);
-    //         waitpid(p->pid, NULL, 0);
-    //     }
-    // }
-    // test line, delete after
-    // return 0;
 
     Process *priority_group = head;
     while (priority_group != NULL) {
