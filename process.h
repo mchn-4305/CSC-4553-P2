@@ -6,16 +6,12 @@
 typedef struct Process {
     int id;
     int priority;
-
     char *program;
     char **argv;
     int argc;
-
     pid_t pid;
-
     int finished;
     int stopped;
-
     struct Process *next;
 } Process;
 

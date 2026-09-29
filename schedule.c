@@ -78,7 +78,7 @@ static void create_all_processes(Process *head) {
         if (pid == 0) {
             sigprocmask(SIG_UNBLOCK, &schedule_sigs, NULL);
             raise(SIGSTOP);
-            execvp(p->program, p->args);
+            execvp(p->program, p->argv);
             perror("execvp");
             _exit(EXIT_FAILURE);
         }
@@ -124,6 +124,27 @@ static void run_slice(Process *p, long quantum) {
 
 }
 
+static void insert_process_sorted (Process **head, Process *new_process) {
+    if (*head == NULL ||
+        new_process->priority < (*head)->priority) {
+
+        new_process->next = *head;
+        *head = new_process;
+        return;
+    }
+
+    Process *current = *head;
+
+    while (current->next != NULL &&
+           current->next->priority <= new_process->priority) {
+
+        current = current->next;
+    }
+
+    new_process->next = current->next;
+    current->next = new_process;
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         //invalid input
@@ -149,7 +170,17 @@ int main(int argc, char *argv[]) {
     char *line = NULL;
     size_t capacity = 0;
     while (getline(&line, &capacity, file) != -1) {
-        printf("LINE: %s", line);
+        Process *process = parse_process_line(line);
+
+        if (process == NULL) {
+            fprintf(stderr, "Could not parse process line\n");
+            continue;
+        }
+
+        insert_process_sorted(
+            &head,
+            process
+        );
     }
 
     free(line);
