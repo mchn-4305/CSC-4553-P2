@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -6,6 +8,9 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <errno.h>
+
+#include "process.h"
+#include "parser.h"
 
 //Statuses of running one quantum
 #define SLICE_RUNNING 0
@@ -76,7 +81,7 @@ static void create_all_processes(Process *head) {
         if (pid == 0) {
             sigprocmask(SIG_UNBLOCK, &schedule_sigs, NULL);
             raise(SIGSTOP);
-            execvp(p->program, p->args);
+            execvp(p->program, p->argv);
             perror("execvp");
             _exit(EXIT_FAILURE);
         }
@@ -122,6 +127,27 @@ static void run_slice(Process *p, long quantum) {
 
 }
 
+static void insert_process_sorted (Process **head, Process *new_process) {
+    if (*head == NULL ||
+        new_process->priority < (*head)->priority) {
+
+        new_process->next = *head;
+        *head = new_process;
+        return;
+    }
+
+    Process *current = *head;
+
+    while (current->next != NULL &&
+           current->next->priority <= new_process->priority) {
+
+        current = current->next;
+    }
+
+    new_process->next = current->next;
+    current->next = new_process;
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         //invalid input
@@ -129,33 +155,61 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    char *end;
-    long quantum = strtol(argv[1], &end, 10);
-    if (end == argv[1] || *end != '\0') {
+    char *endptr;
+    long quantum = strtol(argv[1], &endptr, 10);
+    if (endptr == argv[1] || *endptr != '\0' || quantum <= 0) {
         fprintf(stderr, "Invalid quantum: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
     char *filename = argv[2];
-    FILE *file = fopen(filename, r);
+    FILE *file = fopen(filename, "r");
 
     if (file == NULL) {
+        perror("fopen");
         return EXIT_FAILURE;
     }
 
     char *line = NULL;
     size_t capacity = 0;
+    
+    Process *head = NULL;
+
     while (getline(&line, &capacity, file) != -1) {
-        printf("LINE: %s", line);
+        Process *process = parse_process_line(line);
+
+        if (process == NULL) {
+            fprintf(stderr, "Could not parse process line\n");
+            continue;
+        }
+
+        insert_process_sorted(
+            &head,
+            process
+        );
+    }
+
+    // Testing loop, delete after
+    for (Process *p = head; p != NULL; p = =->next) {
+        printf("id=%d priority=%d program =%s\n",
+            p->id,
+            p->priority,
+            p->program
+        );
+        for (int i = 0; i < p->argc; i++) {
+            printf(
+                "    argv[%d] = %s\n",
+                i,
+                p->argv[i]
+            );
+        }
     }
 
     free(line);
     fclose(file);
-
-     //After file is processed into linked-list
-    //TODO: Get process head
-    setup_sigs();
-    create_all_processes(head);
+    
+    // setup_sigs();
+    // create_all_processes(head);
 
     Process *priority_group = head;
     while (priority_group != NULL) {
